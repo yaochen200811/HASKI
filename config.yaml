@@ -1,0 +1,21 @@
+api:
+  knowledge: "http://localhost:8080"
+  timing: "http://localhost:8082"
+
+generation_model:
+  name: "lmstudio-community/DeepSeek-R1-Distill-Llama-8B-GGUF"
+  gguf_file: "DeepSeek-R1-Distill-Llama-8B-Q4_K_M.gguf"
+  device: "cuda"
+  max_token: 1024
+
+knowledge:
+  cache_dir: ".wikidata_cache"
+  email: "yourEmail@example.com"
+  client_url: "http://localhost:1234/v1"
+  client_key: "not-needed"
+  model: 'llama-3.2-1b-instruct'
+
+timing:
+  mode: "KI-RL-AS"
+  device: "cuda"
+  huggingface_token: "your_token"
