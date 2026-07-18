@@ -29,39 +29,125 @@ Implements the IPM, which determines the optimal point to inject external knowle
 
 Each service is fully independent and can be deployed on separate machines if required.
 
----
 
 # Quick Start
 
-## 1. Configure the system
+## 1. Install Python dependencies
 
-Edit `config.yaml` before starting any service.
+We recommend using **Python 3.11**.
 
-## 2. Start services
+Clone the repository and install the required packages:
 
-Run the following services separately:
+```bash
+git clone <repository_url>
+cd HASKI
 
-- Knowledge Service
-- Timing Prediction Service (IPM)
-- Generation Service
-
-## 3. Generate responses
-
-Send a GET request to: 
+pip install -r requirements.txt
+```
 
 
-# API: `/HASKI_generate`
+## 2. Set up the Primary Reasoning Model
 
-## Parameters
+The Generation Service uses a GGUF reasoning model.
+
+1. Select a supported reasoning model. HASKI supports both:
+   - Online models hosted on Hugging Face (loaded automatically using the model repository ID).
+   - Local GGUF models (downloaded and stored locally).
+
+   For example, a local GGUF model can be downloaded as:
+   **DeepSeek-R1-Distill-Qwen-1.5B-GGUF**
+
+2. If using a local GGUF model, place the GGUF file in your preferred model directory.
+
+3. Update the following fields in `config.yaml`:
+
+```yaml
+generation_model:
+  name: <Hugging Face model repository ID or local model directory>
+  gguf_file: <GGUF filename>
+  device: cuda
+```
+
+Set `device` to the appropriate PyTorch device (`cuda`, `cpu`, or `mps`).
+
+
+## 3. Set up the Knowledge Service
+
+The Knowledge Service requires an OpenAI-compatible endpoint for topic extraction.
+
+We recommend using **LM Studio** with **Llama-3.2-1B-Instruct**.
+
+1. Install [**LM Studio**](https://lmstudio.ai/)
+2. Download **Llama-3.2-1B-Instruct**.
+3. Start the OpenAI-compatible server in LM Studio.
+4. Update the following configuration:
+
+```yaml
+knowledge:
+  client_url: http://localhost:1234/v1
+  client_key: lm-studio
+  model: llama-3.2-1b-instruct
+```
+
+Since LM Studio does not require authentication by default, `client_key` may be any non-empty string.
+
+
+## 4. Set up the Timing Prediction Service
+
+The Timing Prediction Service automatically downloads the base model from Hugging Face.
+
+Before running the service:
+
+1. Create a Hugging Face account if you do not already have one.
+2. Accept the license for [**meta-llama/Llama-3.2-1B**](https://huggingface.co/meta-llama/Llama-3.2-1B) on Hugging Face.
+3. Generate a Hugging Face access token.
+4. Update `config.yaml`:
+
+```yaml
+timing:
+  huggingface_token: hf_xxxxxxxxxxxxxxxxx
+  mode: KI-RL-AS
+  device: cuda
+```
+
+The repository already contains the fine-tuned IPM checkpoints. The Hugging Face token is only required to download the base Llama model used to load these checkpoints.
+
+## 5. Configure the system
+
+Review and update the remaining entries in `config.yaml`, including:
+
+- API endpoints
+- Model locations
+- Execution devices
+- Cache directory
+
+
+## 6. Start the services
+
+Launch the three services separately:
+
+1. Knowledge Service
+2. Timing Prediction Service (IPM)
+3. Generation Service
+
+
+## 7. Generate responses
+
+After all services are running, send a GET request to:
+
+```
+/HASKI_generate
+```
+
+### Parameters
 
 | Parameter | Type | Description |
 |----------|------|-------------|
 | `question` | string | The input question to be answered |
 | `smart` | bool | If `true`, uses IPM to determine optimal knowledge injection timing. If `false`, injects knowledge immediately |
 
----
 
-## Example Request
+### Example Request
 
 ```text
 GET /HASKI_generate?question=Who discovered penicillin?&smart=true
